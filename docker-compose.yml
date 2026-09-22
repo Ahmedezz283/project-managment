@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: project-manager-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ahmadezz@2005
+      POSTGRES_DB: project_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # keycloak:
+  #   image: quay.io/keycloak/keycloak:26.0
+  #   container_name: project-manager-keycloak
+  #   environment:
+  #     KEYCLOAK_ADMIN: admin
+  #     KEYCLOAK_ADMIN_PASSWORD: admin
+  #   ports:
+  #     - "8081:8080"
+  #   command: start-dev
+  #   volumes:
+  #     - keycloak_data:/opt/keycloak/data
+  #   networks:
+  #     - app-network
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: project-manager-rabbitmq
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   networks:
+  #     - app-network
+
+  flowable:
+    image: flowable/all-in-one
+    container_name: project-manager-flowable
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+  kong:
+    image: kong:latest
+    container_name: project-manager-kong
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_PLUGINS: "bundled"
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    volumes:
+      - ./kong.yml:/etc/kong/kong.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - keycloak
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  keycloak_data:
+
+networks:
+  app-network:
+    driver: bridge

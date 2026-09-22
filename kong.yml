@@ -1,0 +1,17 @@
+_format_version: "3.0"
+
+services:
+  - name: nest-service
+    url: http://host.docker.internal:3000
+    routes:
+      - name: nest-route
+        paths:
+          - /
+        strip_path: false
+        protocols:
+          - http
+          - https
+
+# OIDC plugin is intentionally removed for now because the default Kong image
+# does not include the custom plugin package. This keeps Kong running and
+# forwarding requests to the Nest API reliably.
